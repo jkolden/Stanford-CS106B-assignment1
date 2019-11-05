@@ -1,0 +1,199 @@
+// John Kolden, SCPD
+// Assignment 1
+// April 5, 2015
+
+
+#include <cctype>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include "console.h"
+#include "filelib.h"
+#include "grid.h"
+#include "gwindow.h"
+#include "simpio.h"
+#include "lifegui.h"
+using namespace std;
+
+int main() {
+
+    //function prototypes:
+    void welcomeMessages();
+    Grid<char> populateFirstGeneration();
+    Grid<char> populateNewGeneration(Grid<char>&);
+
+int numberOfGenerations;
+string userInput;
+char userSelection;
+
+//begin user interaction:
+welcomeMessages();
+Grid<char> newLife = populateFirstGeneration();
+
+
+while (userSelection != 'Q')
+{
+    userInput = toUpperCase((getLine ("a)nimate, t)ick, q)uit? ")));
+    userSelection = userInput.at(0); //take only first character of whatever is input by user
+
+    switch (userSelection)
+    {
+    case ('A'): //animate new generations based on user input
+    {
+        numberOfGenerations = getInteger("How many generations? ");
+        for (int i=0; i < numberOfGenerations; i++)
+        {
+           // cout << "iteration " << i << endl; //for debugging
+            newLife = populateNewGeneration(newLife);
+            clearConsole() ;
+            pause(50);
+        };
+    }
+        break;
+    case ('T'): //tick one generation forward
+        newLife = populateNewGeneration(newLife);
+        break;
+    case('Q'): //quit program
+        break;
+    }
+};
+
+    cout << "Have a nice Life!" << endl;
+    return 0;
+}
+
+void welcomeMessages()  {
+
+    cout << "Welcome to the CS 106B Game of Life," << endl;
+    cout << "a simulation of the lifecycle of a bacteria colony." << endl;
+    cout << "Cells (X) live and die by the following rules:" << endl;
+    cout << "- A cell with 1 or fewer neighbors dies." << endl;
+    cout << "- Locations with 2 neighbors remain stable." << endl;
+    cout << "- Locations with 3 neighbors will create life." << endl;
+    cout << "- A cell with 4 or more neighbors dies." << endl;
+}
+
+Grid<char> populateFirstGeneration()
+{
+
+    ifstream input;
+    string line;
+    string fileName;
+
+    // validate that user-entered filename exists before continuing
+   while (!fileExists(fileName))
+        fileName   = getLine("Grid input file name? ");
+
+    input.open(fileName);
+
+
+    //get number of rows from input file:
+    getLine(input,line);
+    int rows = stringToInteger(line);
+
+    //get number of columns from input file:
+    getLine(input,line);
+    int columns = stringToInteger(line);
+
+    //create grid variable
+    Grid<char> lifeMatrix(rows, columns);
+
+    //create second grid variable to be used to store the temporary new generation:
+   // Grid<char> lifeMatrixTemp(rows, columns);
+
+    //populate grid with data from file:
+
+    for (int r=0; r <rows; r++)
+    {
+        getLine(input, line);
+
+    for (int c=0; c < columns; c++)
+    {
+        lifeMatrix[r][c] = line[c];
+        cout << lifeMatrix[r][c];
+
+    }//end row loop
+    cout << endl;
+    }//end column loop
+
+    return lifeMatrix;
+
+}//end populateFirstGeneration
+
+Grid<char> populateNewGeneration(Grid<char>& lifeMatrix) {
+
+    int maxRows = lifeMatrix.numRows();
+    int maxColumns = lifeMatrix.numCols();
+    int livingNeighbors = 0;
+    Grid<char> matrixCopy(maxRows,maxColumns);
+    matrixCopy = lifeMatrix;
+
+    //iterate over each location in the grid:
+        for (int currentRow = 0; currentRow < maxRows; currentRow++)
+        {
+            for (int currentColumn = 0; currentColumn < maxColumns; currentColumn++)
+            {
+    //and then test each location's neighbors for a living cell
+
+                for (int neighborRows = -1; neighborRows < 2; neighborRows++)
+                {
+                    for (int neighborCols = -1; neighborCols < 2; neighborCols++ )
+                    {
+                        if (lifeMatrix.inBounds((currentRow - neighborRows),(currentColumn - neighborCols)) && lifeMatrix[currentRow - neighborRows][currentColumn - neighborCols] == 'X')
+                        {
+                            livingNeighbors += 1;
+                        }
+
+                    }
+
+                }//end evaluation of neighbor cells
+
+                //don't count the location itself!:
+
+                if (lifeMatrix[currentRow][currentColumn]=='X')
+                {
+                    livingNeighbors -= 1;
+                }
+
+                //apply rules to determine if the current location will have a living cell based on the number of living neighbors:
+
+                switch (livingNeighbors) {
+                case 0: //A location that has zero or one neighbors will be empty in the next generation. If a cell was there, it dies.
+                matrixCopy[currentRow][currentColumn] = '-';
+                break;
+                case 1: //A location that has zero or one neighbors will be empty in the next generation. If a cell was there, it dies.
+                matrixCopy[currentRow][currentColumn] = '-';
+                break;
+                case 2: //A location with two neighbors is stable. If it had a cell, it still contains a cell. If it was empty, it's still empty.
+                matrixCopy[currentRow][currentColumn] = lifeMatrix[currentRow][currentColumn];
+                break;
+                case 3: //A location with three neighbors will contain a cell in the next generation. If it was unoccupied before, a
+                        //new cell is born. If it currently contains a cell, the cell remains.
+                matrixCopy[currentRow][currentColumn] = 'X';
+                break;
+                default: //A location with four or more neighbors will be empty in the next generation. If there was a cell in that
+                         //location, it dies of overcrowding.
+                matrixCopy[currentRow][currentColumn] = '-';
+                break;
+                }
+
+                cout << matrixCopy[currentRow][currentColumn]; //print new generation to console
+
+                //reset livingNeighbors counter
+
+                livingNeighbors = 0;
+
+
+            } //end iteration over columns
+
+            cout << endl;
+
+        } //end iteration over rows
+
+
+return matrixCopy;
+
+}//end populateNewGeneration
+

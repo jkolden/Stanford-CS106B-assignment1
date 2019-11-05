@@ -1,0 +1,79 @@
+string fileName = getLine("Grid input file name? ");
+
+
+input.open(fileName);
+
+
+//get number of rows from input file:
+getLine(input,line);
+int rows = stringToInteger(line);
+
+//get number of columns from input file:
+getLine(input,line);
+int columns = stringToInteger(line);
+
+//create grid variable
+Grid<char> lifeMatrix(rows, columns);
+
+//create second grid variable to be used to store the temporary new generation:
+Grid<char> lifeMatrixTemp(rows, columns);
+
+//populate grid with data from file:
+
+for (int r=0; r <rows; r++)
+{
+    getLine(input, line);
+
+for (int c=0; c < columns; c++)
+{
+    lifeMatrix[r][c] = line[c];
+}
+}//end populate grid with data from file
+
+
+int livingNeighbors = 0;
+
+//iterate over each location in the grid:
+    for (int rl = 0; rl < rows; rl++)
+    {
+        for (int cl = 0; cl < columns; cl++)
+        {
+//and then test each location's neighbors for a living cell
+
+            for (int neighborRows = -1; neighborRows < 2; neighborRows++)
+            {
+                for (int neighborCols = -1; neighborCols < 2; neighborCols++ )
+                {
+                    if (lifeMatrix.inBounds((rl - neighborRows),(cl - neighborCols)) && lifeMatrix[rl - neighborRows][cl - neighborCols] == 'X')
+                    {
+                        livingNeighbors += 1;
+                    }
+
+                }
+
+            }//end evaluation of neighbor cells
+
+            //don't count the location itself:
+
+            if (lifeMatrix[rl][cl]=='X')
+            {
+                livingNeighbors -= 1;
+            }
+
+            cout << livingNeighbors << " | ";
+
+            //reset livingNeighbors counter
+
+            livingNeighbors = 0;
+
+
+        } //end iteration over columns
+
+        cout << endl;
+
+    } //end iteration over rows
+
+    //copy matrix to temporary matrix:
+lifeMatrixTemp = lifeMatrix;
+
+*/
